@@ -48,6 +48,10 @@ class TrimEditorPainter extends CustomPainter {
   /// `Colors.white`.
   final Color scrubberPaintColor;
 
+  /// For specifying the height multiplier to increase the trim area height.
+  /// By default it is set to `1.0`. Set to values > 1.0 to increase height.
+  final double heightMultiplier;
+
   /// For drawing the trim editor slider
   ///
   /// The required parameters are [startPos], [endPos]
@@ -102,6 +106,10 @@ class TrimEditorPainter extends CustomPainter {
   /// scrubber inside the trim area. By default it is set to
   /// `Colors.white`.
   ///
+  ///
+  /// * [heightMultiplier] for increasing the height of the trim area.
+  /// By default it is set to `1.0`. Values > 1.0 increase height.
+  ///
   TrimEditorPainter({
     required this.startPos,
     required this.endPos,
@@ -115,6 +123,7 @@ class TrimEditorPainter extends CustomPainter {
     this.borderPaintColor = Colors.white,
     this.circlePaintColor = Colors.white,
     this.scrubberPaintColor = Colors.white,
+    this.heightMultiplier = 2.0, // Increased default height
   });
 
   @override
@@ -137,7 +146,17 @@ class TrimEditorPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    final rect = Rect.fromPoints(startPos, endPos);
+    // Calculate the increased height
+    final originalHeight = endPos.dy - startPos.dy;
+    final increasedHeight = originalHeight * heightMultiplier;
+    final heightDifference = increasedHeight - originalHeight;
+    final verticalOffset = heightDifference / 2;
+
+    // Create adjusted positions with increased height
+    final adjustedStartPos = Offset(startPos.dx, startPos.dy - verticalOffset);
+    final adjustedEndPos = Offset(endPos.dx, endPos.dy + verticalOffset);
+
+    final rect = Rect.fromPoints(adjustedStartPos, adjustedEndPos);
     final roundedRect = RRect.fromRectAndRadius(
       rect,
       Radius.circular(borderRadius),
@@ -146,20 +165,26 @@ class TrimEditorPainter extends CustomPainter {
     if (showScrubber) {
       if (scrubberAnimationDx.toInt() > startPos.dx.toInt()) {
         canvas.drawLine(
-          Offset(scrubberAnimationDx, 0),
-          Offset(scrubberAnimationDx, 0) + Offset(0, endPos.dy),
+          Offset(scrubberAnimationDx, adjustedStartPos.dy),
+          Offset(scrubberAnimationDx, adjustedEndPos.dy),
           scrubberPaint,
         );
       }
     }
 
     canvas.drawRRect(roundedRect, borderPaint);
-    // Paint start holder
+
+    // Paint start holder (positioned at the middle of the left edge)
     canvas.drawCircle(
-        startPos + Offset(0, endPos.dy / 2), startCircleSize, circlePaint);
-    // Paint end holder
+        adjustedStartPos + Offset(0, increasedHeight / 2),
+        startCircleSize,
+        circlePaint);
+
+    // Paint end holder (positioned at the middle of the right edge)
     canvas.drawCircle(
-        endPos + Offset(0, -endPos.dy / 2), endCircleSize, circlePaint);
+        adjustedEndPos + Offset(0, -increasedHeight / 2),
+        endCircleSize,
+        circlePaint);
   }
 
   @override

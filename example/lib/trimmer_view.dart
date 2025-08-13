@@ -1,13 +1,14 @@
 import 'dart:io';
 
 import 'package:example/preview.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Preview;
 import 'package:video_trimmer/video_trimmer.dart';
 
 class TrimmerView extends StatefulWidget {
   final File file;
 
   const TrimmerView(this.file, {super.key});
+
   @override
   State<TrimmerView> createState() => _TrimmerViewState();
 }
@@ -60,7 +61,11 @@ class _TrimmerViewState extends State<TrimmerView> {
       child: Scaffold(
         backgroundColor: Colors.black,
         appBar: AppBar(
-          title: const Text('Video Trimmer'),
+          backgroundColor: Colors.black,
+          leading: Icon(
+            Icons.close,
+            color: Colors.white,
+          ),
         ),
         body: Center(
           child: Container(
@@ -75,12 +80,33 @@ class _TrimmerViewState extends State<TrimmerView> {
                     backgroundColor: Colors.red,
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: _progressVisibility ? null : () => _saveVideo(),
-                  child: const Text('SAVE'),
-                ),
                 Expanded(
-                  child: VideoViewer(trimmer: _trimmer),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      VideoViewer(trimmer: _trimmer),
+                      TextButton(
+                        child: _isPlaying
+                            ? const Icon(
+                                Icons.pause,
+                                size: 80.0,
+                                color: Colors.white,
+                              )
+                            : const Icon(
+                                Icons.play_arrow,
+                                size: 80.0,
+                                color: Colors.white,
+                              ),
+                        onPressed: () async {
+                          bool playbackState = await _trimmer.videoPlaybackControl(
+                            startValue: _startValue,
+                            endValue: _endValue,
+                          );
+                          setState(() => _isPlaying = playbackState);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
                 Center(
                   child: Padding(
@@ -92,10 +118,10 @@ class _TrimmerViewState extends State<TrimmerView> {
                       durationStyle: DurationStyle.FORMAT_MM_SS,
                       maxVideoLength: const Duration(seconds: 10),
                       editorProperties: TrimEditorProperties(
-                        borderPaintColor: Colors.yellow,
-                        borderWidth: 4,
+                        borderPaintColor: Colors.white,
+                        borderWidth: 2,
                         borderRadius: 5,
-                        circlePaintColor: Colors.yellow.shade800,
+                        circlePaintColor: Colors.white,
                       ),
                       areaProperties: TrimAreaProperties.edgeBlur(
                         thumbnailQuality: 50,
@@ -107,26 +133,23 @@ class _TrimmerViewState extends State<TrimmerView> {
                     ),
                   ),
                 ),
-                TextButton(
-                  child: _isPlaying
-                      ? const Icon(
-                          Icons.pause,
-                          size: 80.0,
-                          color: Colors.white,
-                        )
-                      : const Icon(
-                          Icons.play_arrow,
-                          size: 80.0,
-                          color: Colors.white,
-                        ),
-                  onPressed: () async {
-                    bool playbackState = await _trimmer.videoPlaybackControl(
-                      startValue: _startValue,
-                      endValue: _endValue,
-                    );
-                    setState(() => _isPlaying = playbackState);
-                  },
-                )
+                Container(
+                    alignment: Alignment.center,
+                    width: MediaQuery.of(context).size.width,
+                    margin: EdgeInsets.symmetric(horizontal: 20,vertical: 20),
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Color(0xff2E86C1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Next",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16.0
+                      ),
+                    ))
               ],
             ),
           ),
