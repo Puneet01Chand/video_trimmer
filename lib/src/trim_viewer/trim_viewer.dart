@@ -90,6 +90,10 @@ class TrimViewer extends StatefulWidget {
   /// thumbnails are loaded.
   final VoidCallback? onThumbnailLoadingComplete;
 
+  final double? heightMultiplier;
+
+  final EdgeInsetsGeometry? timerRowPadding;
+
   /// Widget for displaying the video trimmer.
   ///
   /// This has frame wise preview of the video with a
@@ -184,6 +188,8 @@ class TrimViewer extends StatefulWidget {
     this.editorProperties = const TrimEditorProperties(),
     this.areaProperties = const TrimAreaProperties(),
     this.onThumbnailLoadingComplete,
+    this.heightMultiplier,
+    this.timerRowPadding,
   });
 
   @override
@@ -198,14 +204,12 @@ class _TrimViewerState extends State<TrimViewer> with TickerProviderStateMixin {
     super.initState();
     widget.trimmer.eventStream.listen((event) {
       if (event == TrimmerEvent.initialized) {
-        final totalDuration =
-            widget.trimmer.videoPlayerController!.value.duration;
+        final totalDuration = widget.trimmer.videoPlayerController!.value.duration;
         final maxVideoLength = widget.maxVideoLength;
         final paddingFraction = widget.paddingFraction;
         final trimAreaDuration = Duration(
             milliseconds: (maxVideoLength.inMilliseconds +
-                ((paddingFraction * maxVideoLength.inMilliseconds) * 2)
-                    .toInt()));
+                ((paddingFraction * maxVideoLength.inMilliseconds) * 2).toInt()));
 
         final shouldScroll = trimAreaDuration <= totalDuration &&
             maxVideoLength.compareTo(const Duration(milliseconds: 0)) != 0;
@@ -233,6 +237,8 @@ class _TrimViewerState extends State<TrimViewer> with TickerProviderStateMixin {
       onChangePlaybackState: widget.onChangePlaybackState,
       paddingFraction: widget.paddingFraction,
       editorProperties: widget.editorProperties,
+      heightMultiplier: widget.heightMultiplier,
+      padding: widget.timerRowPadding,
       areaProperties: widget.areaProperties,
       onThumbnailLoadingComplete: () {
         if (widget.onThumbnailLoadingComplete != null) {
@@ -253,6 +259,8 @@ class _TrimViewerState extends State<TrimViewer> with TickerProviderStateMixin {
       onChangeEnd: widget.onChangeEnd,
       onChangePlaybackState: widget.onChangePlaybackState,
       editorProperties: widget.editorProperties,
+      heightMultiplier: widget.heightMultiplier,
+      padding: widget.timerRowPadding,
       areaProperties: FixedTrimAreaProperties(
         thumbnailFit: widget.areaProperties.thumbnailFit,
         thumbnailQuality: widget.areaProperties.thumbnailQuality,

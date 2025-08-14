@@ -52,6 +52,8 @@ class TrimEditorPainter extends CustomPainter {
   /// By default it is set to `1.0`. Set to values > 1.0 to increase height.
   final double heightMultiplier;
 
+
+
   /// For drawing the trim editor slider
   ///
   /// The required parameters are [startPos], [endPos]
@@ -123,7 +125,7 @@ class TrimEditorPainter extends CustomPainter {
     this.borderPaintColor = Colors.white,
     this.circlePaintColor = Colors.white,
     this.scrubberPaintColor = Colors.white,
-    this.heightMultiplier = 2.0, // Increased default height
+    required this.heightMultiplier, // Increased default height
   });
 
   @override

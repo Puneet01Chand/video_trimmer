@@ -62,9 +62,14 @@ class _TrimmerViewState extends State<TrimmerView> {
         backgroundColor: Colors.black,
         appBar: AppBar(
           backgroundColor: Colors.black,
-          leading: Icon(
-            Icons.close,
-            color: Colors.white,
+          leading: GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Icon(
+              Icons.close,
+              color: Colors.white,
+            ),
           ),
         ),
         body: Center(
@@ -113,16 +118,19 @@ class _TrimmerViewState extends State<TrimmerView> {
                     padding: const EdgeInsets.all(8.0),
                     child: TrimViewer(
                       trimmer: _trimmer,
+                      type: ViewerType.auto,
+                      heightMultiplier: 1.2,
+                      timerRowPadding: EdgeInsets.only(bottom: 10),
                       viewerHeight: 50.0,
                       viewerWidth: MediaQuery.of(context).size.width,
                       durationStyle: DurationStyle.FORMAT_MM_SS,
                       maxVideoLength: const Duration(seconds: 10),
                       editorProperties: TrimEditorProperties(
-                        borderPaintColor: Colors.white,
-                        borderWidth: 2,
-                        borderRadius: 5,
-                        circlePaintColor: Colors.white,
-                      ),
+                          borderPaintColor: Colors.white,
+                          borderWidth: 2,
+                          borderRadius: 5,
+                          circlePaintColor: Colors.white,
+                          scrubberWidth: 2),
                       areaProperties: TrimAreaProperties.edgeBlur(
                         thumbnailQuality: 50,
                       ),
@@ -133,23 +141,27 @@ class _TrimmerViewState extends State<TrimmerView> {
                     ),
                   ),
                 ),
-                Container(
-                    alignment: Alignment.center,
-                    width: MediaQuery.of(context).size.width,
-                    margin: EdgeInsets.symmetric(horizontal: 20,vertical: 20),
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Color(0xff2E86C1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      "Next",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16.0
+                GestureDetector(
+                  onTap: () {
+                    _saveVideo();
+                  },
+                  child: Container(
+                      alignment: Alignment.center,
+                      width: MediaQuery.of(context).size.width,
+                      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Color(0xff2E86C1),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ))
+                      child: Text(
+                        "Next",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 16.0),
+                      )),
+                )
               ],
             ),
           ),

@@ -68,7 +68,7 @@ class FixedTrimViewer extends StatefulWidget {
 
   final VoidCallback onThumbnailLoadingComplete;
 
-  final double heightMultiplier;
+  final double? heightMultiplier;
 
   final EdgeInsetsGeometry? padding;
 
@@ -131,7 +131,7 @@ class FixedTrimViewer extends StatefulWidget {
     this.onChangePlaybackState,
     this.editorProperties = const TrimEditorProperties(),
     this.areaProperties = const FixedTrimAreaProperties(),
-    this.heightMultiplier = 1.0,
+    this.heightMultiplier,
     this.padding,
   });
 
@@ -470,7 +470,7 @@ class _FixedTrimViewerState extends State<FixedTrimViewer> with TickerProviderSt
               circlePaintColor: widget.editorProperties.circlePaintColor,
               borderPaintColor: widget.editorProperties.borderPaintColor,
               scrubberPaintColor: widget.editorProperties.scrubberPaintColor,
-              heightMultiplier: widget.heightMultiplier,
+              heightMultiplier: widget.heightMultiplier??1.0,
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(widget.areaProperties.borderRadius),

@@ -75,6 +75,10 @@ class ScrollableTrimViewer extends StatefulWidget {
 
   final VoidCallback onThumbnailLoadingComplete;
 
+  final double? heightMultiplier;
+
+  final EdgeInsetsGeometry? padding;
+
   /// Widget for displaying the video trimmer.
   ///
   /// This has frame wise preview of the video with a
@@ -134,6 +138,8 @@ class ScrollableTrimViewer extends StatefulWidget {
     this.paddingFraction = 0.2,
     this.editorProperties = const TrimEditorProperties(),
     this.areaProperties = const TrimAreaProperties(),
+    this.heightMultiplier,
+    this.padding,
   });
 
   @override
@@ -143,6 +149,7 @@ class ScrollableTrimViewer extends StatefulWidget {
 class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
     with TickerProviderStateMixin {
   final _trimmerAreaKey = GlobalKey();
+
   File? get _videoFile => widget.trimmer.currentVideoFile;
 
   double _videoStartPos = 0.0;
@@ -206,59 +213,60 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
   void startScrolling(bool isTowardsEnd) {
     _scrollingTimer =
         Timer.periodic(const Duration(milliseconds: 300), (timer) {
-      setState(() {
-        final midPoint = (_endPos.dx - _startPos.dx) / 2;
-        var speedMultiplier = 1;
-        if (isTowardsEnd) {
-          if (_localPosition >= _endPos.dx) {
-            speedMultiplier = 5;
-          } else if (_localPosition > (midPoint + (midPoint * 2 / 3))) {
-            speedMultiplier = 4;
-          } else if (_localPosition > (midPoint + midPoint / 3)) {
-            speedMultiplier = 2;
-          }
-          log('End scroll speed: ${speedMultiplier}x');
-          if (_endPos.dx >= _autoEndScrollPos &&
-              currentScrollValue <= totalVideoLengthInPixels) {
-            currentScrollValue = math.min(
-                currentScrollValue + scrollByValue * speedMultiplier,
-                _numberOfThumbnails * _thumbnailViewerH);
-          } else {
-            _scrollingTimer?.cancel();
-            return;
-          }
-        } else {
-          if (_localPosition <= _startPos.dx) {
-            speedMultiplier = 5;
-          } else if (_localPosition < (midPoint - (midPoint * 2 / 3))) {
-            speedMultiplier = 4;
-          } else if (_localPosition < (midPoint - midPoint / 3)) {
-            speedMultiplier = 2;
-          }
-          log('Start scroll speed: ${speedMultiplier}x');
-          if (_startPos.dx <= _autoStartScrollPos && currentScrollValue != 0) {
-            currentScrollValue = math.max(
-                0, currentScrollValue - scrollByValue * speedMultiplier);
-          } else {
-            _scrollingTimer?.cancel();
-            return;
-          }
-        }
-        // log('scroll pixels: ${_scrollController.position.pixels}');
-      });
+          setState(() {
+            final midPoint = (_endPos.dx - _startPos.dx) / 2;
+            var speedMultiplier = 1;
+            if (isTowardsEnd) {
+              if (_localPosition >= _endPos.dx) {
+                speedMultiplier = 5;
+              } else if (_localPosition > (midPoint + (midPoint * 2 / 3))) {
+                speedMultiplier = 4;
+              } else if (_localPosition > (midPoint + midPoint / 3)) {
+                speedMultiplier = 2;
+              }
+              log('End scroll speed: ${speedMultiplier}x');
+              if (_endPos.dx >= _autoEndScrollPos &&
+                  currentScrollValue <= totalVideoLengthInPixels) {
+                currentScrollValue = math.min(
+                    currentScrollValue + scrollByValue * speedMultiplier,
+                    _numberOfThumbnails * _thumbnailViewerH);
+              } else {
+                _scrollingTimer?.cancel();
+                return;
+              }
+            } else {
+              if (_localPosition <= _startPos.dx) {
+                speedMultiplier = 5;
+              } else if (_localPosition < (midPoint - (midPoint * 2 / 3))) {
+                speedMultiplier = 4;
+              } else if (_localPosition < (midPoint - midPoint / 3)) {
+                speedMultiplier = 2;
+              }
+              log('Start scroll speed: ${speedMultiplier}x');
+              if (_startPos.dx <= _autoStartScrollPos && currentScrollValue != 0) {
+                currentScrollValue = math.max(
+                    0, currentScrollValue - scrollByValue * speedMultiplier);
+              } else {
+                _scrollingTimer?.cancel();
+                return;
+              }
+            }
+            // log('scroll pixels: ${_scrollController.position.pixels}');
+          });
 
-      log('SCROLL: $currentScrollValue, (${((_scrollController.position.pixels / _scrollController.position.maxScrollExtent) * 100).toStringAsFixed(2)}%)');
-      _scrollController.animateTo(
-        currentScrollValue,
-        curve: Curves.easeOut,
-        duration: const Duration(milliseconds: 100),
-      );
-      final durationChange = (_scrollController.position.pixels /
+          log('SCROLL: $currentScrollValue, (${((_scrollController.position.pixels /
+              _scrollController.position.maxScrollExtent) * 100).toStringAsFixed(2)}%)');
+          _scrollController.animateTo(
+            currentScrollValue,
+            curve: Curves.easeOut,
+            duration: const Duration(milliseconds: 100),
+          );
+          final durationChange = (_scrollController.position.pixels /
               _scrollController.position.maxScrollExtent) *
-          _remainingDuration;
-      _videoStartPos = (_trimmerAreaDuration * _startFraction) + durationChange;
-      _videoEndPos = (_trimmerAreaDuration * _endFraction) + durationChange;
-    });
+              _remainingDuration;
+          _videoStartPos = (_trimmerAreaDuration * _startFraction) + durationChange;
+          _videoEndPos = (_trimmerAreaDuration * _endFraction) + durationChange;
+        });
     setState(() {});
   }
 
@@ -266,7 +274,7 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
     var start = 300;
     _scrollStartTimer = Timer.periodic(
       const Duration(milliseconds: 100),
-      (Timer timer) {
+          (Timer timer) {
         if (start == 0) {
           timer.cancel();
           log('ANIMATE');
@@ -289,7 +297,7 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
     _thumbnailViewerH = widget.viewerHeight;
     SchedulerBinding.instance.addPostFrameCallback((_) {
       final renderBox =
-          _trimmerAreaKey.currentContext?.findRenderObject() as RenderBox?;
+      _trimmerAreaKey.currentContext?.findRenderObject() as RenderBox?;
       final trimmerActualWidth = renderBox?.size.width;
       log('RENDER BOX: ${renderBox?.size.width}');
       if (trimmerActualWidth == null) return;
@@ -319,14 +327,16 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
         log('autoScrollAreaLength: $autoScrollAreaLength');
         _autoStartScrollPos = autoScrollAreaLength;
         _autoEndScrollPos = trimAreaLength - autoScrollAreaLength;
-        log('autoStartScrollPos: $_autoStartScrollPos, autoEndScrollPos: $_autoEndScrollPos');
+        log(
+            'autoStartScrollPos: $_autoStartScrollPos, autoEndScrollPos: $_autoEndScrollPos');
         final thumbnailHeight = widget.viewerHeight;
         final numberOfThumbnailsInArea = trimAreaLength / thumbnailHeight;
         final numberOfThumbnailsTotal = (numberOfThumbnailsInArea *
-                (totalDuration.inMilliseconds /
-                    trimAreaDuration.inMilliseconds))
+            (totalDuration.inMilliseconds /
+                trimAreaDuration.inMilliseconds))
             .ceil();
-        log('THUMBNAILS: in area=$numberOfThumbnailsInArea, total=$numberOfThumbnailsTotal');
+        log(
+            'THUMBNAILS: in area=$numberOfThumbnailsInArea, total=$numberOfThumbnailsTotal');
 
         // find precise durations according to the number of thumbnails;
         // preciseTotalLength = numberOfThumbnailsTotal * thumbnailHeight
@@ -373,7 +383,7 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
         _animationController = AnimationController(
           vsync: this,
           duration:
-              Duration(milliseconds: (_videoEndPos - _videoStartPos).toInt()),
+          Duration(milliseconds: (_videoEndPos - _videoStartPos).toInt()),
         );
 
         _scrubberAnimation = _linearTween.animate(_animationController!)
@@ -518,7 +528,7 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
     _startFraction = (_startPos.dx / _thumbnailViewerW);
     _videoStartPos = (_trimmerAreaDuration * _startFraction) +
         (_scrollController.position.pixels /
-                _scrollController.position.maxScrollExtent) *
+            _scrollController.position.maxScrollExtent) *
             _remainingDuration;
     widget.onChangeStart!(_videoStartPos);
     _linearTween.begin = _startPos.dx;
@@ -532,7 +542,7 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
     _endFraction = _endPos.dx / _thumbnailViewerW;
     _videoEndPos = (_trimmerAreaDuration * _endFraction) +
         (_scrollController.position.pixels /
-                _scrollController.position.maxScrollExtent) *
+            _scrollController.position.maxScrollExtent) *
             _remainingDuration;
     widget.onChangeEnd!(_videoEndPos);
     _linearTween.end = _endPos.dx;
@@ -585,52 +595,53 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
         children: <Widget>[
           widget.showDuration
               ? SizedBox(
-                  width: _thumbnailViewerW,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Text(
-                          Duration(milliseconds: _videoStartPos.toInt())
-                              .format(widget.durationStyle),
-                          style: widget.durationTextStyle,
-                        ),
-                        videoPlayerController.value.isPlaying
-                            ? Text(
-                                Duration(milliseconds: _currentPosition.toInt())
-                                    .format(widget.durationStyle),
-                                style: widget.durationTextStyle,
-                              )
-                            : Container(),
-                        Text(
-                          Duration(milliseconds: _videoEndPos.toInt())
-                              .format(widget.durationStyle),
-                          style: widget.durationTextStyle,
-                        ),
-                      ],
-                    ),
+            width: _thumbnailViewerW,
+            child: Padding(
+              padding: widget.padding??const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.max,
+                children: <Widget>[
+                  Text(
+                    Duration(milliseconds: _videoStartPos.toInt())
+                        .format(widget.durationStyle),
+                    style: widget.durationTextStyle,
                   ),
-                )
+                  videoPlayerController.value.isPlaying
+                      ? Text(
+                    Duration(milliseconds: _currentPosition.toInt())
+                        .format(widget.durationStyle),
+                    style: widget.durationTextStyle,
+                  )
+                      : Container(),
+                  Text(
+                    Duration(milliseconds: _videoEndPos.toInt())
+                        .format(widget.durationStyle),
+                    style: widget.durationTextStyle,
+                  ),
+                ],
+              ),
+            ),
+          )
               : Container(),
           Stack(
             clipBehavior: Clip.none,
             children: [
               CustomPaint(
                 foregroundPainter: TrimEditorPainter(
-                  startPos: _startPos,
-                  endPos: _endPos,
-                  scrubberAnimationDx: _scrubberAnimation?.value ?? 0,
-                  startCircleSize: _startCircleSize,
-                  endCircleSize: _endCircleSize,
-                  borderRadius: _borderRadius,
-                  borderWidth: widget.editorProperties.borderWidth,
-                  scrubberWidth: widget.editorProperties.scrubberWidth,
-                  circlePaintColor: widget.editorProperties.circlePaintColor,
-                  borderPaintColor: widget.editorProperties.borderPaintColor,
-                  scrubberPaintColor:
-                      widget.editorProperties.scrubberPaintColor,
+                    startPos: _startPos,
+                    endPos: _endPos,
+                    scrubberAnimationDx: _scrubberAnimation?.value ?? 0,
+                    startCircleSize: _startCircleSize,
+                    endCircleSize: _endCircleSize,
+                    borderRadius: _borderRadius,
+                    borderWidth: widget.editorProperties.borderWidth,
+                    scrubberWidth: widget.editorProperties.scrubberWidth,
+                    circlePaintColor: widget.editorProperties.circlePaintColor,
+                    borderPaintColor: widget.editorProperties.borderPaintColor,
+                    scrubberPaintColor:
+                    widget.editorProperties.scrubberPaintColor,
+                    heightMultiplier: widget.heightMultiplier??1.0,
                 ),
                 child: Stack(
                   children: [
@@ -649,50 +660,50 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
                     ),
                     _scrollController.positions.isNotEmpty
                         ? AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      decoration: BoxDecoration(
+                        gradient: widget.areaProperties.blurEdges
+                            ? LinearGradient(
+                          stops: const [0.0, 0.1, 0.9, 1.0],
+                          colors: [
+                            _scrollController.position.pixels == 0.0
+                                ? Colors.transparent
+                                : widget.areaProperties.blurColor,
+                            Colors.transparent,
+                            Colors.transparent,
+                            _scrollController.position.pixels ==
+                                _scrollController
+                                    .position.maxScrollExtent
+                                ? Colors.transparent
+                                : widget.areaProperties.blurColor,
+                          ],
+                        )
+                            : null,
+                      ),
+                      height: _thumbnailViewerH,
+                      width: widget.viewerWidth,
+                      child: Row(
+                        children: [
+                          AnimatedOpacity(
+                              opacity:
+                              _scrollController.position.pixels != 0.0
+                                  ? 1.0
+                                  : 0.0,
+                              duration: const Duration(milliseconds: 300),
+                              child: widget.areaProperties.startIcon),
+                          const Spacer(),
+                          AnimatedOpacity(
+                            opacity: _scrollController.position.pixels !=
+                                _scrollController
+                                    .position.maxScrollExtent
+                                ? 1.0
+                                : 0.0,
                             duration: const Duration(milliseconds: 300),
-                            decoration: BoxDecoration(
-                              gradient: widget.areaProperties.blurEdges
-                                  ? LinearGradient(
-                                      stops: const [0.0, 0.1, 0.9, 1.0],
-                                      colors: [
-                                        _scrollController.position.pixels == 0.0
-                                            ? Colors.transparent
-                                            : widget.areaProperties.blurColor,
-                                        Colors.transparent,
-                                        Colors.transparent,
-                                        _scrollController.position.pixels ==
-                                                _scrollController
-                                                    .position.maxScrollExtent
-                                            ? Colors.transparent
-                                            : widget.areaProperties.blurColor,
-                                      ],
-                                    )
-                                  : null,
-                            ),
-                            height: _thumbnailViewerH,
-                            width: widget.viewerWidth,
-                            child: Row(
-                              children: [
-                                AnimatedOpacity(
-                                    opacity:
-                                        _scrollController.position.pixels != 0.0
-                                            ? 1.0
-                                            : 0.0,
-                                    duration: const Duration(milliseconds: 300),
-                                    child: widget.areaProperties.startIcon),
-                                const Spacer(),
-                                AnimatedOpacity(
-                                  opacity: _scrollController.position.pixels !=
-                                          _scrollController
-                                              .position.maxScrollExtent
-                                      ? 1.0
-                                      : 0.0,
-                                  duration: const Duration(milliseconds: 300),
-                                  child: widget.areaProperties.endIcon,
-                                ),
-                              ],
-                            ),
-                          )
+                            child: widget.areaProperties.endIcon,
+                          ),
+                        ],
+                      ),
+                    )
                         : const SizedBox(),
                   ],
                 ),
@@ -708,8 +719,8 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
                       height: _thumbnailViewerH,
                       // 2% of total trimmer width
                       width: (_thumbnailViewerW == 0.0
-                              ? widget.viewerWidth
-                              : _thumbnailViewerW) *
+                          ? widget.viewerWidth
+                          : _thumbnailViewerW) *
                           0.02,
                     ),
                     const Spacer(),
@@ -718,8 +729,8 @@ class _ScrollableTrimViewerState extends State<ScrollableTrimViewer>
                       height: _thumbnailViewerH,
                       // 2% of total trimmer width
                       width: (_thumbnailViewerW == 0.0
-                              ? widget.viewerWidth
-                              : _thumbnailViewerW) *
+                          ? widget.viewerWidth
+                          : _thumbnailViewerW) *
                           0.02,
                     ),
                   ],
